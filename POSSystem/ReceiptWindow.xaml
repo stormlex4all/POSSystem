@@ -1,0 +1,17 @@
+﻿<Window x:Class="POSSystem.ReceiptWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:POSSystem"
+        mc:Ignorable="d"
+        Title="ReceiptWindow" Height="450" Width="800">
+    <Grid>
+		<StackPanel Margin="20">
+			<TextBlock Text="RECEIPT" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,10" />
+			<ListBox x:Name="ReceiptList" FontSize="14" Height="200" Margin="0,0,0,10" />
+			<TextBlock x:Name="TotalText" FontSize="16" FontWeight="Bold" HorizontalAlignment="Right" Margin="0,10,0,10" />
+			<Button Content="Print" Height="40" Click="Print_Click" Width="300" />
+		</StackPanel>
+	</Grid>
+</Window>
