@@ -5,13 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:POSSystem"
         mc:Ignorable="d"
-        Title="ReceiptWindow" Height="450" Width="800">
-    <Grid>
+        Title="ReceiptWindow" Height="450" Width="360">
+	<Grid>
 		<StackPanel Margin="20">
 			<TextBlock Text="RECEIPT" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,10" />
 			<ListBox x:Name="ReceiptList" FontSize="14" Height="200" Margin="0,0,0,10" />
 			<TextBlock x:Name="TotalText" FontSize="16" FontWeight="Bold" HorizontalAlignment="Right" Margin="0,10,0,10" />
-			<Button Content="Print" Height="40" Click="Print_Click" Width="300" />
+			<Button Content="Print" Height="31" Click="Print_Click" Width="172" />
 		</StackPanel>
 	</Grid>
 </Window>
