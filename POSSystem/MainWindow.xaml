@@ -5,116 +5,142 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:POSSystem"
         mc:Ignorable="d"
-        Title="POS System" Height="606" Width="884">
+        Title="POS System"
+        Height="800"
+        Width="1200"
+        WindowStartupLocation="CenterScreen">
+    
 	<Grid Margin="10">
 		<!-- ROWS -->
-		<Grid.RowDefinitions>
-			<RowDefinition Height="*" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
 			<RowDefinition Height="80" />
 		</Grid.RowDefinitions>
 
-		<!-- COLUMNS -->
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="2*" />
-			<!-- LEFT -->
-			<ColumnDefinition Width="1*" />
-			<!-- MIDDLE -->
-			<ColumnDefinition Width="4*" />
-			<!-- RIGHT -->
-		</Grid.ColumnDefinitions>
+        <Border Grid.Row="0" Background="#2196F3" CornerRadius="4" Padding="15" Margin="0,0,0,10">
+            <Grid>
+                <TextBlock Text="POS SYSTEM - SMALL RETAIL STORE" 
+                   FontSize="24" 
+                   FontWeight="Bold" 
+                   Foreground="White" 
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Center"/>
+                <TextBlock x:Name="DateTimeTextBlock" 
+                   FontSize="14" 
+                   Foreground="White" 
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
 
-		<!-- LEFT: CART -->
-		<StackPanel Grid.Column="0">
+        <Grid Grid.Row="1">
 
-			<GroupBox Header="Transaction" Height="300">
-				<Grid>
-					<!-- DATA GRID -->
-					<DataGrid x:Name="CartGrid" AutoGenerateColumns="False" ItemsSource="{Binding Cart}">
+            <!-- COLUMNS -->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <!-- LEFT -->
+                <ColumnDefinition Width="1*" />
+                <!-- MIDDLE -->
+                <ColumnDefinition Width="4*" />
+                <!-- RIGHT -->
+            </Grid.ColumnDefinitions>
 
-						<DataGrid.Columns>
-							<DataGridTextColumn Header="Item" Binding="{Binding Product.Name}" />
-                            <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" />
-                            <DataGridTextColumn Header="Price" Binding="{Binding Product.Price, StringFormat=C}" />
-							<DataGridTextColumn Header="Total" Binding="{Binding Subtotal, StringFormat=C}" />
+            <!-- LEFT: CART -->
+            <StackPanel Grid.Column="0">
 
-							<DataGridTemplateColumn Header="Actions">
-								<DataGridTemplateColumn.CellTemplate>
-									<DataTemplate>
-										<StackPanel Orientation="Horizontal">
-											<Button Content="➖" Width="30" Margin="2" Click="Decrease_Click" />
-											<Button Content="➕" Width="30" Margin="2" Click="Increase_Click" />
-										</StackPanel>
-									</DataTemplate>
-								</DataGridTemplateColumn.CellTemplate>
-							</DataGridTemplateColumn>
+                <GroupBox Header="Transaction" Height="300">
+                    <Grid>
+                        <!-- DATA GRID -->
+                        <DataGrid x:Name="CartGrid" AutoGenerateColumns="False" ItemsSource="{Binding Cart}">
 
-						</DataGrid.Columns>
-					</DataGrid>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Item" Binding="{Binding Product.Name}" />
+                                <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" />
+                                <DataGridTextColumn Header="Price" Binding="{Binding Product.Price, StringFormat=C}" />
+                                <DataGridTextColumn Header="Total" Binding="{Binding Subtotal, StringFormat=C}" />
 
-					<StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5">
-						<TextBlock x:Name="TotalText" FontSize="18" FontWeight="Bold" Text="Total: $0.00" />
-					</StackPanel>
+                                <DataGridTemplateColumn Header="Actions">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Content="➖" Width="30" Margin="2" Click="Decrease_Click" />
+                                                <Button Content="➕" Width="30" Margin="2" Click="Increase_Click" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
 
-					<!-- EMPTY MESSAGE  -->
-					<StackPanel x:Name="EmptyMessage" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False">
-						<TextBlock Text="Add an Item" FontSize="20" FontWeight="Bold" Opacity="0.4" HorizontalAlignment="Center" />
-						<TextBlock Text="Tap an item to add to the transaction" FontSize="13" Opacity="0.4" Foreground="Gray" HorizontalAlignment="Center" />
-					</StackPanel>
-				</Grid>
-			</GroupBox>
-			
-			<!-- KEYPAD -->
-			<StackPanel Grid.Column="0" Margin="1">
+                            </DataGrid.Columns>
+                        </DataGrid>
 
-				<TextBox x:Name="QuantityDisplay" Height="50" FontSize="24" Text="" IsReadOnly="True" HorizontalContentAlignment="Right" Margin="5" />
+                        <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5">
+                            <TextBlock x:Name="TotalText" FontSize="18" FontWeight="Bold" Text="Total: $0.00" />
+                        </StackPanel>
 
-				<UniformGrid Rows="5" Columns="3" Margin="5">
-					<Button Content="7" Click="Number_Click" />
-					<Button Content="8" Click="Number_Click" />
-					<Button Content="9" Click="Number_Click" />
-					<Button Content="4" Click="Number_Click" />
-					<Button Content="5" Click="Number_Click" />
-					<Button Content="6" Click="Number_Click" />
-					<Button Content="1" Click="Number_Click" />
-					<Button Content="2" Click="Number_Click" />
-					<Button Content="3" Click="Number_Click" />
-					<Button Content="0" Click="Number_Click" />
-					<Button Content="00" Click="Number_Click" />
-					<Button Content="." Click="Number_Click" />
-					<Button Content="❌" Click="Clear_Click" />
-					<Button Content="Qty" Click="Quantity_Click" />
-					<Button Content="⌫" Click="Back_Click" />
-				</UniformGrid>
-			</StackPanel>
-		</StackPanel>
+                        <!-- EMPTY MESSAGE  -->
+                        <StackPanel x:Name="EmptyMessage" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False">
+                            <TextBlock Text="Add an Item" FontSize="20" FontWeight="Bold" Opacity="0.4" HorizontalAlignment="Center" />
+                            <TextBlock Text="Tap an item to add to the transaction" FontSize="13" Opacity="0.4" Foreground="Gray" HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
 
-		<!-- MIDDLE: CATEGORIES -->
-		<StackPanel Grid.Column="1" Margin="5">
-			<Button Content="Food🍴" Height="50" Margin="2" Click="Category_Click" Tag="Food" />
-			<Button Content="Beverages🥤" Height="50" Margin="2" Click="Category_Click" Tag="Beverages" />
-			<Button Content="Snacks 🍿" Height="50" Margin="2" Click="Category_Click" Tag="Snacks" />
-			<Button Content="18+ 🔐" Height="50" Margin="2" Click="Category_Click" Tag="18+" />
-			<Button Content="Misc 🗂️" Height="50" Margin="2" Click="Category_Click" Tag="Misc" />
-			<Separator Margin="2,10"/>
-			<Button Content="🛠️ Products" Height="50" Margin="2" Click="ProductManagement_Click" Background="#FF9800" Foreground="White" FontWeight="Bold" />
-			<Button Content="Receipt 🧾" Height="50" Margin="2" Click="Receipt_Click" />
-		</StackPanel>
+                <!-- KEYPAD -->
+                <StackPanel Grid.Column="0" Margin="1">
 
-		<!-- RIGHT: PRODUCTS  -->
-		<ScrollViewer Grid.Column="2">
-			<WrapPanel x:Name="ProductsPanel">
-				<!-- Products will be loaded dynamically from database -->
-			</WrapPanel>
-		</ScrollViewer>
+                    <TextBox x:Name="QuantityDisplay" Height="50" FontSize="24" Text="" IsReadOnly="True" HorizontalContentAlignment="Right" Margin="5" />
 
-		<!-- BOTTOM: ACTION BUTTONS -->
-		<StackPanel Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Center">
-			<Button Content="Payment" Width="120" Height="50" Margin="10" Click="Payment_Click" />
-			<Button Content="Cash" Width="120" Height="50" Margin="10" Click="Cash_Click" />
-			<Button Content="Hold Trans" Width="120" Height="50" Margin="10" Click="Hold_Click" />
-			<Button Content="Abort Trans" Width="120" Height="50" Margin="10" Click="Abort_Click" />
-			<Button Content="USD → CAD" Width="120" Height="50" Margin="10" Click="Convert_Click" />
-		</StackPanel>
+                    <UniformGrid Rows="5" Columns="3" Margin="5">
+                        <Button Content="7" Click="Number_Click" />
+                        <Button Content="8" Click="Number_Click" />
+                        <Button Content="9" Click="Number_Click" />
+                        <Button Content="4" Click="Number_Click" />
+                        <Button Content="5" Click="Number_Click" />
+                        <Button Content="6" Click="Number_Click" />
+                        <Button Content="1" Click="Number_Click" />
+                        <Button Content="2" Click="Number_Click" />
+                        <Button Content="3" Click="Number_Click" />
+                        <Button Content="0" Click="Number_Click" />
+                        <Button Content="00" Click="Number_Click" />
+                        <Button Content="." Click="Number_Click" />
+                        <Button Content="❌" Click="Clear_Click" />
+                        <Button Content="Qty" Click="Quantity_Click" />
+                        <Button Content="⌫" Click="Back_Click" />
+                    </UniformGrid>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- MIDDLE: CATEGORIES -->
+            <StackPanel Grid.Column="1" Margin="5">
+                <Button Content="Food🍴" Height="50" Margin="2" Click="Category_Click" Tag="Food" />
+                <Button Content="Beverages🥤" Height="50" Margin="2" Click="Category_Click" Tag="Beverages" />
+                <Button Content="Snacks 🍿" Height="50" Margin="2" Click="Category_Click" Tag="Snacks" />
+                <Button Content="18+ 🔐" Height="50" Margin="2" Click="Category_Click" Tag="18+" />
+                <Button Content="Misc 🗂️" Height="50" Margin="2" Click="Category_Click" Tag="Misc" />
+                <Separator Margin="2,10"/>
+                <Button Content="🛠️ Products" Height="50" Margin="2" Click="ProductManagement_Click" Background="#FF9800" Foreground="White" FontWeight="Bold" />
+                <Button Content="Receipt 🧾" Height="50" Margin="2" Click="Receipt_Click" />
+            </StackPanel>
+
+            <!-- RIGHT: PRODUCTS  -->
+            <ScrollViewer Grid.Column="2">
+                <WrapPanel x:Name="ProductsPanel">
+                    <!-- Products will be loaded dynamically from database -->
+                </WrapPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <!-- BOTTOM: ACTION BUTTONS -->
+            <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Content="Payment" Width="120" Height="50" Margin="10" Click="Payment_Click" />
+                <Button Content="Cash" Width="120" Height="50" Margin="10" Click="Cash_Click" />
+                <Button Content="Hold Trans" Width="120" Height="50" Margin="10" Click="Hold_Click" />
+                <Button Content="Abort Trans" Width="120" Height="50" Margin="10" Click="Abort_Click" />
+                <Button Content="USD → CAD" Width="120" Height="50" Margin="10" Click="Convert_Click" />
+            </StackPanel>
+        </Grid>
 
 	</Grid>
 </Window>

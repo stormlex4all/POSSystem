@@ -1,11 +1,12 @@
+using POSSystem.Models;
+using POSSystem.Services;
 using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Collections.ObjectModel;
-using POSSystem.Models;
-using POSSystem.Services;
+using System.Windows.Threading;
 
 namespace POSSystem
 {
@@ -16,6 +17,7 @@ namespace POSSystem
         private string currentInput = "";
         private int pendingQuantity = 1;
         private string currentCategory = "";
+        private string timeFormat = "dddd, MMMM dd, yyyy - hh:mm:ss tt";
 
         public MainWindow()
         {
@@ -29,6 +31,15 @@ namespace POSSystem
             LoadProductButtons();
             UpdateTotal();
             UpdateEmptyMessage();
+
+            // Start timer for date/time display
+            var timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            timer.Tick += (s, e) => DateTimeTextBlock.Text = DateTime.Now.ToString(timeFormat);
+            timer.Start();
+            DateTimeTextBlock.Text = DateTime.Now.ToString(timeFormat);
         }
 
         private void LoadProductButtons(string category = "")
@@ -48,7 +59,7 @@ namespace POSSystem
                     Height = 80,
                     Margin = new Thickness(5),
                     Tag = product,
-                    Background = product.RequiresAgeVerification 
+                    Background = product.RequiresAgeVerification
                         ? new SolidColorBrush(Color.FromRgb(255, 152, 0)) // Orange for 18+
                         : new SolidColorBrush(Color.FromRgb(33, 150, 243)), // Blue for regular
                     Foreground = Brushes.White,
@@ -206,7 +217,7 @@ namespace POSSystem
 
         private void Abort_Click(object sender, RoutedEventArgs e)
         {
-            if (MessageBox.Show("Cancel Transaction?", "Confirm", 
+            if (MessageBox.Show("Cancel Transaction?", "Confirm",
                 MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 Cart.Clear();
@@ -224,7 +235,7 @@ namespace POSSystem
                 return;
             }
 
-            MessageBox.Show("Transaction Held (Feature to be fully implemented)", 
+            MessageBox.Show("Transaction Held (Feature to be fully implemented)",
                 "Hold Transaction", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
@@ -233,7 +244,7 @@ namespace POSSystem
             double total = Cart.Sum(x => x.Subtotal);
             double cad = total * 1.38; // USD to CAD conversion
 
-            MessageBox.Show($"USD: ${total:F2}\nCAD: ${cad:F2}", 
+            MessageBox.Show($"USD: ${total:F2}\nCAD: ${cad:F2}",
                 "Currency Conversion", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
