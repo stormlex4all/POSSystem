@@ -1,0 +1,172 @@
+<Window x:Class="POSSystem.HeldTransactionsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:POSSystem"
+        Title="Held Transactions" Height="500" Width="700"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F5F5"
+        ResizeMode="NoResize">
+    
+    <Border Background="White" CornerRadius="4" Margin="15" Padding="20">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                <TextBlock Text="HELD TRANSACTIONS" 
+                           FontSize="20" 
+                           FontWeight="Bold" 
+                           Foreground="#2196F3"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="Select a transaction to resume" 
+                           FontSize="12"
+                           Foreground="#666666"
+                           HorizontalAlignment="Center"
+                           Margin="0,5,0,0"/>
+            </StackPanel>
+
+            <!-- Transaction List -->
+            <Border Grid.Row="1" 
+                    BorderBrush="#DDDDDD" 
+                    BorderThickness="1" 
+                    CornerRadius="4">
+                <Grid>
+                    <DataGrid x:Name="TransactionsDataGrid"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              IsReadOnly="True"
+                              SelectionMode="Single"
+                              AlternatingRowBackground="#F9F9F9"
+                              GridLinesVisibility="None"
+                              HeadersVisibility="Column"
+                              BorderThickness="0"
+                              MouseDoubleClick="TransactionsDataGrid_DoubleClick">
+                        
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="#2196F3"/>
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="Padding" Value="10"/>
+                                <Setter Property="BorderThickness" Value="0,0,1,0"/>
+                                <Setter Property="BorderBrush" Value="#1976D2"/>
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Transaction ID" Binding="{Binding Id}" Width="200">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontFamily" Value="Consolas"/>
+                                        <Setter Property="FontSize" Value="11"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Items" Binding="{Binding Items.Count}" Width="80"/>
+                            <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat=C2}" Width="100"/>
+                            <DataGridTextColumn Header="Age Verified" Width="120">
+                                <DataGridTextColumn.Binding>
+                                    <Binding Path="AgeVerified">
+                                        <Binding.Converter>
+                                            <local:BoolToYesNoConverter/>
+                                        </Binding.Converter>
+                                    </Binding>
+                                </DataGridTextColumn.Binding>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Created" Binding="{Binding CreatedDate, StringFormat='MM/dd/yyyy HH:mm'}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Empty message -->
+                    <StackPanel x:Name="EmptyMessage"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                Visibility="Collapsed">
+                        <TextBlock Text="📋" FontSize="48" HorizontalAlignment="Center" Opacity="0.3"/>
+                        <TextBlock Text="No Held Transactions" 
+                                   FontSize="18" 
+                                   FontWeight="Bold" 
+                                   Opacity="0.4"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,10,0,0"/>
+                        <TextBlock Text="Held transactions will appear here" 
+                                   FontSize="12" 
+                                   Opacity="0.4"
+                                   Foreground="Gray"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Action Buttons -->
+            <UniformGrid Grid.Row="2" Columns="2" Margin="0,20,0,0">
+                <Button Content="✓ Resume Selected" 
+                        Click="Resume_Click"
+                        Margin="0,0,5,0"
+                        Height="45"
+                        Background="#4CAF50"
+                        Foreground="White"
+                        FontWeight="Bold"
+                        FontSize="14"
+                        BorderThickness="0"
+                        Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                    CornerRadius="4"
+                                    Padding="10">
+                                <ContentPresenter HorizontalAlignment="Center" 
+                                                  VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#388E3C"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <Button Content="✖ Cancel" 
+                        Click="Cancel_Click"
+                        Margin="5,0,0,0"
+                        Height="45"
+                        Background="#757575"
+                        Foreground="White"
+                        FontWeight="Bold"
+                        FontSize="14"
+                        BorderThickness="0"
+                        Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                    CornerRadius="4"
+                                    Padding="10">
+                                <ContentPresenter HorizontalAlignment="Center" 
+                                                  VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#616161"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </UniformGrid>
+        </Grid>
+    </Border>
+</Window>
