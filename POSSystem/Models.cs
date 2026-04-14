@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -297,6 +298,53 @@ namespace POSSystem.Models
         public override string ProcessPayment()
         {
             return $"USD payment processed. ${USDAmount:F2} USD = ${Amount:F2} CAD";
+        }
+    }
+    // Transaction data model
+    public class Transaction
+    {
+        public string Id { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public ObservableCollection<CartItem> Cart { get; set; }
+        public double Subtotal { get; set; }
+        public double Tax { get; set; }
+        public double Total { get; set; }
+        public string Status { get; set; } // "Active", "Held", "Completed", "Aborted"
+        public bool AgeVerified { get; set; }
+
+        public Transaction()
+        {
+            Id = Guid.NewGuid().ToString();
+            CreatedDate = DateTime.Now;
+            Cart = new ObservableCollection<CartItem>();
+            Status = "Active";
+            AgeVerified = false;
+        }
+
+        public void CalculateTotals()
+        {
+            Subtotal = Cart.Sum(item => item.Subtotal);
+            Tax = Subtotal * 0.05; // 5% GST
+            Total = Subtotal + Tax;
+        }
+
+        public Transaction Clone()
+        {
+            var clone = new Transaction
+            {
+                Id = this.Id,
+                CreatedDate = this.CreatedDate,
+                Status = this.Status,
+                AgeVerified = this.AgeVerified
+            };
+
+            foreach (var item in Cart)
+            {
+                clone.Cart.Add(new CartItem(item.Product, item.Quantity));
+            }
+
+            clone.CalculateTotals();
+            return clone;
         }
     }
 }

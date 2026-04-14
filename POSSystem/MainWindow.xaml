@@ -26,11 +26,23 @@
                    Foreground="White" 
                    HorizontalAlignment="Left"
                    VerticalAlignment="Center"/>
-                <TextBlock x:Name="DateTimeTextBlock" 
-                   FontSize="14" 
-                   Foreground="White" 
-                   HorizontalAlignment="Right"
-                   VerticalAlignment="Center"/>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Border Background="#1976D2" CornerRadius="4" Padding="10,5" Margin="0,0,15,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📋 Held: " Foreground="White" FontSize="13" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="HeldCountTextBlock" 
+                                       Text="0" 
+                                       Foreground="#FFD54F" 
+                                       FontSize="13" 
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+                    <TextBlock x:Name="DateTimeTextBlock" 
+                               FontSize="14" 
+                               Foreground="White" 
+                               VerticalAlignment="Center"/>
+                </StackPanel>
             </Grid>
         </Border>
 
@@ -134,11 +146,12 @@
         <Grid Grid.Row="2">
             <!-- BOTTOM: ACTION BUTTONS -->
             <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button Content="Payment" Width="120" Height="50" Margin="10" Click="Payment_Click" />
-                <Button Content="Cash" Width="120" Height="50" Margin="10" Click="Cash_Click" />
-                <Button Content="Hold Trans" Width="120" Height="50" Margin="10" Click="Hold_Click" />
-                <Button Content="Abort Trans" Width="120" Height="50" Margin="10" Click="Abort_Click" />
-                <Button Content="USD → CAD" Width="120" Height="50" Margin="10" Click="Convert_Click" />
+                <Button Content="💳 Payment" Width="120" Height="50" Margin="10" Click="Payment_Click" />
+                <Button Content="💵 Cash" Width="120" Height="50" Margin="10" Click="Cash_Click" Background="#4CAF50" Foreground="White" FontWeight="Bold"/>
+                <Button Content="⏸️ Hold Trans" Width="120" Height="50" Margin="10" Click="Hold_Click" Background="#FF9800" Foreground="White" FontWeight="Bold"/>
+                <Button Content="▶️ Resume" Width="120" Height="50" Margin="10" Click="Resume_Click" Background="#2196F3" Foreground="White" FontWeight="Bold"/>
+                <Button Content="🚫 Abort Trans" Width="120" Height="50" Margin="10" Click="Abort_Click" Background="#F44336" Foreground="White" FontWeight="Bold"/>
+                <Button Content="💱 USD ↔ CAD" Width="120" Height="50" Margin="10" Click="Convert_Click" />
             </StackPanel>
         </Grid>
 
