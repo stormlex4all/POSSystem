@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Transaction = POSSystem.Models.Transaction;
 
 namespace POSSystem
 {
@@ -48,6 +49,8 @@ namespace POSSystem
             timer.Start();
             DateTimeTextBlock.Text = DateTime.Now.ToString(timeFormat);
         }
+
+        public static List<Transaction> TransactionHistory = new List<Transaction>();
 
         private void LoadProductButtons(string category = "")
         {
@@ -424,11 +427,21 @@ namespace POSSystem
 
                 // Complete the transaction
                 _transactionService.CompleteTransaction(_currentTransaction);
+                TransactionHistory.Add(_currentTransaction);
+
+                // ask user for receipt
+                var result = MessageBox.Show("Print receipt?", "Receipt",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    var receipt = new ReceiptWindow(_currentTransaction.Cart);
+                    receipt.ShowDialog();
+                }
 
                 // Create new transaction
                 _currentTransaction = _transactionService.CreateTransaction();
                 CartGrid.ItemsSource = _currentTransaction.Cart;
-                
                 UpdateTotal();
                 UpdateEmptyMessage();
             });
@@ -438,15 +451,8 @@ namespace POSSystem
 
         private void Receipt_Click(object sender, RoutedEventArgs e)
         {
-            if (_currentTransaction.Cart.Count == 0)
-            {
-                MessageBox.Show("Cart is empty. Nothing to show on receipt.",
-                    "Empty Cart", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
-            var receipt = new ReceiptWindow(_currentTransaction.Cart);
-            receipt.ShowDialog();
+            var historyWindow = new TransactionHistoryWindow();
+            historyWindow.ShowDialog();
         }
 
         private void Category_Click(object sender, RoutedEventArgs e)
