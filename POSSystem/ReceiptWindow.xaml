@@ -5,7 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:POSSystem"
         mc:Ignorable="d"
-        Title="ReceiptWindow" Height="450" Width="800">
+        Title="ReceiptWindow"
+        Height="450"
+        Width="800"
+        WindowStartupLocation="CenterScreen">
     <Grid>
 		<StackPanel Margin="20">
 			<TextBlock Text="RECEIPT" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,10" />

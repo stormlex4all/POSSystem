@@ -1,11 +1,11 @@
 <Window x:Class="POSSystem.AgeVerificationDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Age Verification Required" Height="300" Width="400"
-        WindowStartupLocation="CenterOwner"
+        Title="Age Verification Required" Height="370" Width="451"
+        WindowStartupLocation="CenterScreen"
         Background="#F5F5F5"
         ResizeMode="NoResize">
-    
+
     <Border Background="White" CornerRadius="4" Margin="15" Padding="20">
         <Grid>
             <Grid.RowDefinitions>
@@ -36,15 +36,15 @@
                                FontWeight="SemiBold" 
                                Margin="0,0,0,10"/>
                     <TextBox x:Name="AgeTextBox" 
-                             Height="40" 
+                             Height="52" 
                              FontSize="16"
                              TextAlignment="Center"
-                             Padding="5"/>
+                             Padding="5" Width="349"/>
                     <TextBlock x:Name="ValidationTextBlock" 
                                Text="" 
                                Foreground="Red" 
                                Margin="0,10"
-                               TextWrapping="Wrap"/>
+                               TextWrapping="Wrap" Height="36"/>
                 </StackPanel>
             </Border>
 
