@@ -31,6 +31,8 @@ namespace POSSystem
             UpdateEmptyMessage();
         }
 
+        public static List<Transaction> TransactionHistory = new List<Transaction>();
+
         private void LoadProductButtons(string category = "")
         {
             ProductsPanel.Children.Clear();
@@ -263,13 +265,32 @@ namespace POSSystem
 
             var payment = new PaymentWindow(total, () =>
             {
-                // Update product stock after successful payment
-                foreach (var item in Cart)
-                {
-                    item.Product.UpdateStock(-item.Quantity);
-                }
+            // Update product stock after successful payment
+            foreach (var item in Cart)
+            {
+                item.Product.UpdateStock(-item.Quantity);
+            }
 
-                Cart.Clear();
+            // save transaction to history
+            var transaction = new Transaction
+            {
+                Date = DateTime.Now,
+                Items = Cart.Select(item => new CartItem(item.Product, item.Quantity)).ToList(),
+                Total = total
+            };
+            TransactionHistory.Add(transaction);
+
+                // ask user for receipt
+                var result = MessageBox.Show("Print receipt?", "Receipt",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    var receipt = new ReceiptWindow(new ObservableCollection<CartItem>(transaction.Items));
+                    receipt.ShowDialog();
+				}
+
+				Cart.Clear();
                 UpdateTotal();
                 UpdateEmptyMessage();
             });
@@ -279,15 +300,8 @@ namespace POSSystem
 
         private void Receipt_Click(object sender, RoutedEventArgs e)
         {
-            if (Cart.Count == 0)
-            {
-                MessageBox.Show("Cart is empty. Nothing to show on receipt.",
-                    "Empty Cart", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
-            var receipt = new ReceiptWindow(Cart);
-            receipt.ShowDialog();
+            var historyWindow = new TransactionHistoryWindow();
+            historyWindow.ShowDialog();
         }
 
         private void Category_Click(object sender, RoutedEventArgs e)
