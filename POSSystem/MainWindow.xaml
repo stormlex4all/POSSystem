@@ -32,9 +32,9 @@
 					<DataGrid x:Name="CartGrid" AutoGenerateColumns="False" ItemsSource="{Binding Cart}">
 
 						<DataGrid.Columns>
-							<DataGridTextColumn Header="Item" Binding="{Binding Name}" />
-							<DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" />
-							<DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat=C}" />
+							<DataGridTextColumn Header="Item" Binding="{Binding Product.Name}" />
+                            <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" />
+                            <DataGridTextColumn Header="Price" Binding="{Binding Product.Price, StringFormat=C}" />
 							<DataGridTextColumn Header="Total" Binding="{Binding Subtotal, StringFormat=C}" />
 
 							<DataGridTemplateColumn Header="Actions">
@@ -90,23 +90,20 @@
 
 		<!-- MIDDLE: CATEGORIES -->
 		<StackPanel Grid.Column="1" Margin="5">
-			<Button Content="Food🍴" Height="50" Margin="2" Click="Category_Click" />
-			<Button Content="Beverages🥤" Height="50" Margin="2" Click="Category_Click" />
-			<Button Content="Misc 🗂️" Height="50" Margin="2" Click="Category_Click" />
-			<Button Content="18+ 🔐" Height="50" Margin="2" Click="Category_Click" />
+			<Button Content="Food🍴" Height="50" Margin="2" Click="Category_Click" Tag="Food" />
+			<Button Content="Beverages🥤" Height="50" Margin="2" Click="Category_Click" Tag="Beverages" />
+			<Button Content="Snacks 🍿" Height="50" Margin="2" Click="Category_Click" Tag="Snacks" />
+			<Button Content="18+ 🔐" Height="50" Margin="2" Click="Category_Click" Tag="18+" />
+			<Button Content="Misc 🗂️" Height="50" Margin="2" Click="Category_Click" Tag="Misc" />
+			<Separator Margin="2,10"/>
+			<Button Content="🛠️ Products" Height="50" Margin="2" Click="ProductManagement_Click" Background="#FF9800" Foreground="White" FontWeight="Bold" />
 			<Button Content="Receipt 🧾" Height="50" Margin="2" Click="Receipt_Click" />
 		</StackPanel>
 
 		<!-- RIGHT: PRODUCTS  -->
 		<ScrollViewer Grid.Column="2">
-			<WrapPanel>
-
-				<!-- Product Placements -->
-				<Button Content="Coke" Tag="1.99" Width="120" Height="80" Margin="5" Click="Product_Click" />
-				<Button Content="Chips" Tag="1.99" Width="120" Height="80" Margin="5" Click="Product_Click" />
-				<Button Content="Chocolate" Tag="1.99" Width="120" Height="80" Margin="5" Click="Product_Click" />
-				<Button Content="Water" Tag="1.99" Width="120" Height="80" Margin="5" Click="Product_Click" />
-
+			<WrapPanel x:Name="ProductsPanel">
+				<!-- Products will be loaded dynamically from database -->
 			</WrapPanel>
 		</ScrollViewer>
 
