@@ -1,6 +1,4 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Windows;
+﻿using System.Windows;
 
 namespace POSSystem
 {
@@ -9,6 +7,6 @@ namespace POSSystem
 	/// </summary>
 	public partial class App : Application
 	{
-	}
+    }
 
 }
