@@ -1,6 +1,7 @@
-using System.Windows;
-using System.Collections.ObjectModel;
 using POSSystem.Models;
+using System.Collections.ObjectModel;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace POSSystem
 {
@@ -21,8 +22,14 @@ namespace POSSystem
 
         private void Print_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Printing receipt... (Feature to be implemented with actual printer)",
-                "Print", MessageBoxButton.OK, MessageBoxImage.Information);
+            // Create a PrintDialog
+            PrintDialog printDialog = new();
+
+            if (printDialog.ShowDialog() == true)
+            {
+                // Print the entire window or a specific element
+                printDialog.PrintVisual(this, "Receipt");
+            }
         }
     }
 }
