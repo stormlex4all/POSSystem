@@ -67,18 +67,19 @@
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Items" Binding="{Binding Items.Count}" Width="80"/>
+                            <DataGridTextColumn Header="Items" Binding="{Binding Cart.Count}" Width="80"/>
                             <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat=C2}" Width="100"/>
-                            <DataGridTextColumn Header="Age Verified" Width="120">
-                                <DataGridTextColumn.Binding>
-                                    <Binding Path="AgeVerified">
-                                        <Binding.Converter>
-                                            <local:BoolToYesNoConverter/>
-                                        </Binding.Converter>
-                                    </Binding>
-                                </DataGridTextColumn.Binding>
-                            </DataGridTextColumn>
-                            <DataGridTextColumn Header="Created" Binding="{Binding CreatedDate, StringFormat='MM/dd/yyyy HH:mm'}" Width="*"/>
+                            <DataGridTextColumn Header="Created" Binding="{Binding CreatedDate, StringFormat='MM/dd/yyyy HH:mm'}" Width="180"/>
+
+                            <DataGridTemplateColumn Header="Remove" Width="*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="➖" Width="30" Margin="2" Click="RemoveTransaction_Click" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                         </DataGrid.Columns>
                     </DataGrid>
 
