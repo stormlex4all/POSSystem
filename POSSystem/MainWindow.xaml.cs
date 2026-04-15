@@ -442,9 +442,11 @@ namespace POSSystem
 
                 //After window closes, use its data
                 double change = payment.ChangeAmount;
+			    _currentTransaction.Change = change;
+			    _currentTransaction.PaymentMethod = "Cash";
 
-                // Update product stock after successful payment
-                foreach (var item in _currentTransaction.Cart)
+			// Update product stock after successful payment
+			foreach (var item in _currentTransaction.Cart)
                 {
                     item.Product.UpdateStock(-item.Quantity);
                 }
@@ -459,7 +461,7 @@ namespace POSSystem
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    var receipt = new ReceiptWindow(_currentTransaction.Cart, "Cash", change);
+                    var receipt = new ReceiptWindow(_currentTransaction.Cart, _currentTransaction.PaymentMethod, _currentTransaction.Change);
                     receipt.ShowDialog();
                 }
 
