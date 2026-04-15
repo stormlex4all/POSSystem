@@ -7,8 +7,9 @@ namespace POSSystem
     {
         private double totalAmount = 0;
         private Action onPaymentComplete;
+        public double ChangeAmount { get; private set; }
 
-        public PaymentWindow(double total, Action onComplete)
+		public PaymentWindow(double total, Action onComplete)
         {
             InitializeComponent();
             totalAmount = total;
@@ -21,6 +22,7 @@ namespace POSSystem
             if (double.TryParse(CashInput.Text, out double cash))
             {
                 double change = cash - totalAmount;
+                ChangeAmount = change;
 
                 if (change < 0)
                 {

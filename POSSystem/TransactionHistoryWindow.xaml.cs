@@ -42,7 +42,7 @@ namespace POSSystem
 		{
             if (TransactionsDataGrid.SelectedItem is Transaction selected)
             {
-                var receipt = new ReceiptWindow(selected.Cart);
+                var receipt = new ReceiptWindow(selected.Cart, "Unknown", 0);
 
                 receipt.ShowDialog();
             }

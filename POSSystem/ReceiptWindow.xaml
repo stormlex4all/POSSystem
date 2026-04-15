@@ -9,12 +9,48 @@
         Height="450"
         Width="360"
         WindowStartupLocation="CenterScreen">
-  <Grid>
-		<StackPanel Margin="20">
-			<TextBlock Text="RECEIPT" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,10" />
-			<ListBox x:Name="ReceiptList" FontSize="14" Height="200" Margin="0,0,0,10" />
-			<TextBlock x:Name="TotalText" FontSize="16" FontWeight="Bold" HorizontalAlignment="Right" Margin="0,10,0,10" />
-			<Button Content="Print" Height="31" Click="Print_Click" Width="172" />
-		</StackPanel>
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+
+		<!--Receipt Content -->
+		<ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+			<Border Padding="15" Background="White">
+				<StackPanel x:Name="ReceiptPanel" Margin="20">
+
+					<!-- Store Header -->
+					<TextBlock Text="POS System" FontSize="20" FontWeight="Bold" TextAlignment="Center" />
+					<TextBlock Text="Programming C#.NET" FontSize="12" TextAlignment="Center" />
+					<TextBlock Text="Mushtaq Raza" FontSize="12" TextAlignment="Center" />
+
+					<!-- Receipt Info -->
+					<TextBlock x:Name="ReceiptInfoText" FontFamily="Consolas" FontSize="12" />
+					<TextBlock Text="----------------------------------------" FontFamily="Consolas" Margin="0,5" />
+
+					<!-- Items -->
+					<ItemsControl x:Name="ReceiptList" />
+					<TextBlock Text="----------------------------------------" FontFamily="Consolas" Margin="0,5" />
+
+					<!-- Summary -->
+					<TextBlock x:Name="ItemsCountText" FontFamily="Consolas" />
+					<TextBlock x:Name="SubtotalText" FontFamily="Consolas" />
+					<TextBlock x:Name="TaxText" FontFamily="Consolas" />
+					<TextBlock Text="----------------------------------------" FontFamily="Consolas" Margin="5" />
+
+					<!-- Total -->
+					<TextBlock x:Name="TotalText" FontFamily="Consolas" FontSize="18" FontWeight="Bold" />
+
+					<!-- Payment -->
+					<TextBlock x:Name="PaymentText" FontFamily="Consolas" />
+					<TextBlock x:Name="CashText" FontFamily="Consolas" />
+					<TextBlock x:Name="ChangeText" FontFamily="Consolas" />
+
+				</StackPanel>
+			</Border>
+		</ScrollViewer>
+
+		<Button Grid.Row="1" Content="Print" Height="40" Margin="10" Click="Print_Click" />
 	</Grid>
 </Window>
