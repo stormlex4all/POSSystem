@@ -10,15 +10,19 @@ namespace POSSystem
     public partial class HeldTransactionsDialog : Window
     {
         private readonly ITransactionService _transactionService;
+        private Action _onHeldTransactionChange; //to trigger UI updates in MainWindow when held transactions change
+
         public Transaction SelectedTransaction { get; private set; }
 
-        public HeldTransactionsDialog(ITransactionService transactionService)
+        public HeldTransactionsDialog(ITransactionService transactionService, Action onHeldTransactionChange)
         {
             InitializeComponent();
             _transactionService = transactionService;
+            _onHeldTransactionChange = onHeldTransactionChange;
             LoadHeldTransactions();
         }
 
+        // Load held transactions and update UI
         private void LoadHeldTransactions()
         {
             var heldTransactions = _transactionService.GetHeldTransactions();
@@ -34,8 +38,11 @@ namespace POSSystem
                 EmptyMessage.Visibility = Visibility.Collapsed;
                 TransactionsDataGrid.Visibility = Visibility.Visible;
             }
+
+            _onHeldTransactionChange();
         }
 
+        // Resume selected transaction
         private void Resume_Click(object sender, RoutedEventArgs e)
         {
             if (TransactionsDataGrid.SelectedItem is Transaction selected)
@@ -53,6 +60,7 @@ namespace POSSystem
             }
         }
 
+        // Allow double-click to resume transaction
         private void TransactionsDataGrid_DoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (TransactionsDataGrid.SelectedItem is Transaction selected)
@@ -67,6 +75,30 @@ namespace POSSystem
         {
             DialogResult = false;
             Close();
+        }
+
+        // Remove selected held transaction
+        private void RemoveTransaction_Click(object sender, RoutedEventArgs e)
+        {
+            if (TransactionsDataGrid.SelectedItem is Transaction selected)
+            {
+                var result = MessageBox.Show("Are you sure you want to remove this held transaction?", 
+                    "Confirm Removal", 
+                    MessageBoxButton.YesNo, 
+                    MessageBoxImage.Warning);
+                if (result == MessageBoxResult.Yes)
+                {
+                    _transactionService.GetHeldTransactions().Remove(selected);
+                    LoadHeldTransactions();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select a transaction to remove.", 
+                    "No Selection", 
+                    MessageBoxButton.OK, 
+                    MessageBoxImage.Information);
+            }
         }
     }
 

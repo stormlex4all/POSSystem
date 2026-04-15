@@ -103,7 +103,7 @@
 
                     <TextBox x:Name="QuantityDisplay" Height="50" FontSize="24" Text="" IsReadOnly="True" HorizontalContentAlignment="Right" Margin="5" />
 
-                    <UniformGrid Rows="5" Columns="3" Margin="5">
+                    <UniformGrid Rows="5" Columns="3" Margin="5" Height="200">
                         <Button Content="7" Click="Number_Click" />
                         <Button Content="8" Click="Number_Click" />
                         <Button Content="9" Click="Number_Click" />
@@ -130,6 +130,7 @@
                 <Button Content="Snacks 🍿" Height="50" Margin="2" Click="Category_Click" Tag="Snacks" />
                 <Button Content="18+ 🔐" Height="50" Margin="2" Click="Category_Click" Tag="18+" />
                 <Button Content="Misc 🗂️" Height="50" Margin="2" Click="Category_Click" Tag="Misc" />
+                <Button Content="Load All" Height="50" Margin="2" Click="Category_Click" Tag="" />
                 <Separator Margin="2,10"/>
                 <Button Content="🛠️ Products" Height="50" Margin="2" Click="ProductManagement_Click" Background="#FF9800" Foreground="White" FontWeight="Bold" />
                 <Button Content="Transaction History 🧾" Height="50" Margin="2" Click="Receipt_Click" />
@@ -138,7 +139,7 @@
             <!-- RIGHT: PRODUCTS  -->
             <ScrollViewer Grid.Column="2">
                 <WrapPanel x:Name="ProductsPanel">
-                    <!-- Products will be loaded dynamically from database -->
+                    <!-- Products will be loaded dynamically -->
                 </WrapPanel>
             </ScrollViewer>
         </Grid>

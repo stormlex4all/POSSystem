@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using POSSystem.Models;
+using POSSystem.Services;
+using System.Windows;
 
 namespace POSSystem
 {
@@ -7,28 +9,55 @@ namespace POSSystem
     /// </summary>
     public partial class TransactionHistoryWindow : Window
     {
-        public TransactionHistoryWindow()
+        private readonly ITransactionService _transactionService;
+
+        public TransactionHistoryWindow(ITransactionService transactionService)
         {
             InitializeComponent();
+            _transactionService = transactionService;
+            LoadTransactionsHistory();
 
-            foreach (var t in MainWindow.TransactionHistory)
-            {
-                HistoryList.Items.Add($"{t.CreatedDate} - {t.Total:C}");
-			}
-		}
+        }
 
-		private void View_Click(object sender, RoutedEventArgs e)
-		{
-            int index = HistoryList.SelectedIndex;
-            if (index < 0)
+        // Load transactions history and update UI
+        private void LoadTransactionsHistory()
+        {
+            var transactionsHistory = _transactionService.GetTransactionsHistory();
+            TransactionsDataGrid.ItemsSource = transactionsHistory;
+
+            if (transactionsHistory.Count == 0)
             {
-                MessageBox.Show("Please select a transaction to view");
-                return;
+                EmptyMessage.Visibility = Visibility.Visible;
+                TransactionsDataGrid.Visibility = Visibility.Collapsed;
             }
-            var transaction = MainWindow.TransactionHistory[index];
-            var receipt = new ReceiptWindow(transaction.Cart);
+            else
+            {
+                EmptyMessage.Visibility = Visibility.Collapsed;
+                TransactionsDataGrid.Visibility = Visibility.Visible;
+            }
+        }
 
-            receipt.ShowDialog();
+        // Event handler for the View button click
+        private void View_Click(object sender, RoutedEventArgs e)
+		{
+            if (TransactionsDataGrid.SelectedItem is Transaction selected)
+            {
+                var receipt = new ReceiptWindow(selected.Cart);
+
+                receipt.ShowDialog();
+            }
+            else
+            {
+                MessageBox.Show("Please select a transaction to view.",
+                    "No Selection",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
 		}
+
+        private void Cancel_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
     }
 }

@@ -320,6 +320,7 @@ namespace POSSystem.Models
             AgeVerified = false;
         }
 
+        // Method to calculate totals based on cart items
         public void CalculateTotals()
         {
             Subtotal = Cart.Sum(item => item.Subtotal);
@@ -327,6 +328,7 @@ namespace POSSystem.Models
             Total = Subtotal + Tax;
         }
 
+        // Method to create a deep copy of the transaction (used for holding/resuming)
         public Transaction Clone()
         {
             var clone = new Transaction

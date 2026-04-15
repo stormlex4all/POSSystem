@@ -19,8 +19,12 @@ namespace POSSystem
         private string currentInput = "";
         private int pendingQuantity = 1;
         private string currentCategory = "";
-        private string timeFormat = "dddd, MMMM dd, yyyy - hh:mm:ss tt";
+        private readonly string timeFormat = "dddd, MMMM dd, yyyy - hh:mm:ss tt";
+        private readonly double exchangeRate = 1.38; // CAD to USD exchange rate (for demonstration)
 
+        public static List<Transaction> TransactionHistory = [];
+
+        // Main window constructor
         public MainWindow()
         {
             InitializeComponent();
@@ -50,8 +54,7 @@ namespace POSSystem
             DateTimeTextBlock.Text = DateTime.Now.ToString(timeFormat);
         }
 
-        public static List<Transaction> TransactionHistory = new List<Transaction>();
-
+        // Load product buttons based on category filter
         private void LoadProductButtons(string category = "")
         {
             ProductsPanel.Children.Clear();
@@ -81,6 +84,7 @@ namespace POSSystem
             }
         }
 
+        // Decrease quantity of cart item or remove if quantity goes to zero
         private void Decrease_Click(object sender, RoutedEventArgs e)
         {
             if ((sender as Button)?.DataContext is CartItem item)
@@ -103,6 +107,7 @@ namespace POSSystem
             }
         }
 
+        // Increase quantity of cart item
         private void Increase_Click(object sender, RoutedEventArgs e)
         {
             if ((sender as Button)?.DataContext is CartItem item)
@@ -116,6 +121,7 @@ namespace POSSystem
             }
         }
 
+        // Handle number and decimal point button clicks for quantity input
         private void Number_Click(object sender, RoutedEventArgs e)
         {
             string value = (sender as Button).Content.ToString();
@@ -136,12 +142,14 @@ namespace POSSystem
             QuantityDisplay.Text = currentInput;
         }
 
+        // Clear entire input
         private void Clear_Click(object sender, RoutedEventArgs e)
         {
             currentInput = "";
             QuantityDisplay.Text = "";
         }
 
+        // Remove last character from input
         private void Back_Click(object sender, RoutedEventArgs e)
         {
             if (!string.IsNullOrEmpty(currentInput))
@@ -152,6 +160,7 @@ namespace POSSystem
             QuantityDisplay.Text = currentInput;
         }
 
+        // Set pending quantity for next add/increase/decrease action
         private void Quantity_Click(object sender, RoutedEventArgs e)
         {
             pendingQuantity = int.TryParse(currentInput, out int result) ? result : 1;
@@ -159,6 +168,7 @@ namespace POSSystem
             QuantityDisplay.Text = $"⚠ Adjusting by: {pendingQuantity}";
         }
 
+        // Handle product button click to add item to cart
         private void Product_Click(object sender, RoutedEventArgs e)
         {
             Button btn = sender as Button;
@@ -210,18 +220,21 @@ namespace POSSystem
             ResetInput();
         }
 
+        // Reset quantity input
         private void ResetInput()
         {
             currentInput = "";
             QuantityDisplay.Text = "";
         }
 
+        // Recalculate totals and update display
         private void UpdateTotal()
         {
             _currentTransaction.CalculateTotals();
             TotalText.Text = $"Total: {_currentTransaction.Total:C}";
         }
 
+        // Show or hide empty cart message
         private void UpdateEmptyMessage()
         {
             if (_currentTransaction.Cart.Count == 0)
@@ -230,12 +243,15 @@ namespace POSSystem
                 EmptyMessage.Visibility = Visibility.Collapsed;
         }
 
+        // Update held transaction count display
         private void UpdateHeldTransactionCount()
         {
-            int heldCount = _transactionService.GetHeldTransactionCount();
-            HeldCountTextBlock.Text = heldCount.ToString();
+            int count = _transactionService.GetHeldTransactionCount();
+
+            HeldCountTextBlock.Text = count.ToString();
         }
 
+        // Abort current transaction and clear cart
         private void Abort_Click(object sender, RoutedEventArgs e)
         {
             if (_currentTransaction.Cart.Count == 0)
@@ -267,6 +283,7 @@ namespace POSSystem
             }
         }
 
+        // Hold current transaction and start a new one
         private void Hold_Click(object sender, RoutedEventArgs e)
         {
             if (_currentTransaction.Cart.Count == 0)
@@ -342,7 +359,7 @@ namespace POSSystem
             }
 
             // Show held transactions dialog
-            var dialog = new HeldTransactionsDialog(_transactionService);
+            var dialog = new HeldTransactionsDialog(_transactionService, UpdateHeldTransactionCount);
             if (dialog.ShowDialog() == true && dialog.SelectedTransaction != null)
             {
                 try
@@ -372,21 +389,23 @@ namespace POSSystem
             }
         }
 
+        // Simple currency conversion feature (CAD to USD)
         private void Convert_Click(object sender, RoutedEventArgs e)
         {
             double total = _currentTransaction.Total;
-            double usd = total / 1.38; // CAD to USD conversion
+            double usd = total / exchangeRate; // CAD to USD conversion
 
             MessageBox.Show(
                 $"CURRENCY CONVERSION\n\n" +
                 $"CAD: ${total:F2}\n" +
                 $"USD: ${usd:F2}\n\n" +
-                $"Exchange Rate: 1 USD = 1.38 CAD",
+                $"Exchange Rate: 1 USD = {exchangeRate} CAD",
                 "USD ↔ CAD Conversion",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
         }
 
+        // Placeholder for payment processing (card/mobile)
         private void Payment_Click(object sender, RoutedEventArgs e)
         {
             if (_currentTransaction.Cart.Count == 0)
@@ -402,12 +421,13 @@ namespace POSSystem
                 "• Credit Card\n" +
                 "• Debit Card\n" +
                 "• Mobile Payment\n\n" +
-                "(Feature to be fully implemented)",
+                "(Feature to be added during maintenance)",
                 "Payment Options",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
         }
 
+        // Placeholder for cash payment processing
         private void Cash_Click(object sender, RoutedEventArgs e)
         {
             if (_currentTransaction.Cart.Count == 0)
@@ -449,24 +469,26 @@ namespace POSSystem
             payment.ShowDialog();
         }
 
+        // View transaction history
         private void Receipt_Click(object sender, RoutedEventArgs e)
         {
-            var historyWindow = new TransactionHistoryWindow();
+            var historyWindow = new TransactionHistoryWindow(_transactionService);
             historyWindow.ShowDialog();
         }
 
         private void Category_Click(object sender, RoutedEventArgs e)
         {
             Button btn = sender as Button;
-            string category = btn.Tag?.ToString();
+            string? category = btn.Tag?.ToString();
 
             if (!string.IsNullOrEmpty(category))
             {
                 currentCategory = category;
-                LoadProductButtons(category);
             }
+            LoadProductButtons(category);
         }
 
+        // Open product management window
         private void ProductManagement_Click(object sender, RoutedEventArgs e)
         {
             var productMgmtWindow = new ProductManagementWindow(_productService);

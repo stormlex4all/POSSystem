@@ -9,6 +9,7 @@ namespace POSSystem.Services
         Transaction CreateTransaction();
         void HoldTransaction(Transaction transaction);
         ObservableCollection<Transaction> GetHeldTransactions();
+        ObservableCollection<Transaction> GetTransactionsHistory();
         Transaction ResumeTransaction(string transactionId);
         void AbortTransaction(Transaction transaction);
         void CompleteTransaction(Transaction transaction);
@@ -95,6 +96,11 @@ namespace POSSystem.Services
         public int GetHeldTransactionCount()
         {
             return _heldTransactions.Count;
+        }
+
+        public ObservableCollection<Transaction> GetTransactionsHistory()
+        {
+            return _completedTransactions;
         }
     }
 }
