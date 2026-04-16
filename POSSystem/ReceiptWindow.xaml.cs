@@ -8,7 +8,7 @@ namespace POSSystem
     public partial class ReceiptWindow : Window
     {
         private string paymentMethod;
-        public ReceiptWindow(ObservableCollection<CartItem> cart, string method, double change)
+        public ReceiptWindow(ObservableCollection<CartItem> cart, string method, decimal change)
         {
             InitializeComponent();
 
@@ -30,9 +30,9 @@ namespace POSSystem
 
 			//Calculations
             int itemCount = cart.Sum(x => x.Quantity);
-			double subtotal = cart.Sum(x => x.Subtotal);
-            double tax = subtotal * 0.13;
-            double total = subtotal + tax;
+			decimal subtotal = cart.Sum(x => x.Subtotal);
+            decimal tax = subtotal * 0.13m;
+            decimal total = subtotal + tax;
 
             //Summary
             ItemsCountText.Text = $"Items: {itemCount}";

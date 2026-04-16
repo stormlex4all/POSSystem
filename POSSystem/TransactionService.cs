@@ -1,5 +1,10 @@
-using System.Collections.ObjectModel;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+
+using POSSystem.Data;
 using POSSystem.Models;
+
+using System.Collections.ObjectModel;
 
 namespace POSSystem.Services
 {
@@ -20,12 +25,15 @@ namespace POSSystem.Services
     public class TransactionService : ITransactionService
     {
         private ObservableCollection<Transaction> _heldTransactions;
-        private ObservableCollection<Transaction> _completedTransactions;
+        private readonly LocalView<Transaction> _completedTransactions;
+        private readonly POSDbContext _dbContext;
 
-        public TransactionService()
+        public TransactionService(POSDbContext context)
         {
-            _heldTransactions = new ObservableCollection<Transaction>();
-            _completedTransactions = new ObservableCollection<Transaction>();
+            _heldTransactions = [];
+            _dbContext = context;
+            _dbContext.Transactions.Include(t => t.Cart).Load();
+            _completedTransactions = _dbContext.Transactions.Local;
         }
 
         public Transaction CreateTransaction()
@@ -90,7 +98,8 @@ namespace POSSystem.Services
             transaction.Status = "Completed";
             transaction.CalculateTotals();
             
-            _completedTransactions.Add(transaction.Clone());
+            _completedTransactions.Add(transaction);
+            _dbContext.SaveChanges();
         }
 
         public int GetHeldTransactionCount()
@@ -100,7 +109,7 @@ namespace POSSystem.Services
 
         public ObservableCollection<Transaction> GetTransactionsHistory()
         {
-            return _completedTransactions;
+            return _completedTransactions.ToObservableCollection();
         }
     }
 }

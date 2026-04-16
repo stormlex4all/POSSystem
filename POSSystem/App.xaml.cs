@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using POSSystem.Data;
+
+using System.Windows;
 
 namespace POSSystem
 {

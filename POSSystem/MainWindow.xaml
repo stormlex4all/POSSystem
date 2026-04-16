@@ -133,7 +133,7 @@
                 <Button Content="Load All" Height="50" Margin="2" Click="Category_Click" Tag="" />
                 <Separator Margin="2,10"/>
                 <Button Content="🛠️ Products" Height="50" Margin="2" Click="ProductManagement_Click" Background="#FF9800" Foreground="White" FontWeight="Bold" />
-                <Button Content="Transaction History 🧾" Height="50" Margin="2" Click="Receipt_Click" />
+                <Button Content="Transaction History 🧾" Height="50" Margin="2" Click="History_Click" />
             </StackPanel>
 
             <!-- RIGHT: PRODUCTS  -->

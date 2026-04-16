@@ -60,7 +60,7 @@ namespace POSSystem
             }
         }
 
-        // Allow double-click to resume transaction
+        // Allow decimal-click to resume transaction
         private void TransactionsDataGrid_DoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (TransactionsDataGrid.SelectedItem is Transaction selected)
