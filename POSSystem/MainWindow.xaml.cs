@@ -1,266 +1,504 @@
-﻿using System.Text;
+using POSSystem.Models;
+using POSSystem.Services;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
+using System.Windows.Threading;
+using Transaction = POSSystem.Models.Transaction;
 
 namespace POSSystem
 {
-	/// <summary>
-	/// Interaction logic for MainWindow.xaml
-	/// </summary>
-	public partial class MainWindow : Window
-	{
-		public ObservableCollection<CartItem> Cart { get; set; }
-		private string currentInput = "";
-		private int pendingQuantity = 1;
-		public MainWindow()
-		{
-			InitializeComponent();
+    public partial class MainWindow : Window
+    {
+        private readonly IProductService _productService;
+        private readonly ITransactionService _transactionService;
+        
+        private Transaction _currentTransaction;
+        public ObservableCollection<CartItem> Cart { get; set; }
+        private string currentInput = "";
+        private int pendingQuantity = 1;
+        private string currentCategory = "";
+        private readonly string timeFormat = "dddd, MMMM dd, yyyy - hh:mm:ss tt";
+        private readonly double exchangeRate = 1.38; // CAD to USD exchange rate (for demonstration)
 
-			Cart = new ObservableCollection<CartItem>();
+        public static List<Transaction> TransactionHistory = [];
 
-			DataContext = this;
+        // Main window constructor
+        public MainWindow()
+        {
+            InitializeComponent();
 
-			UpdateTotal();
-			UpdateEmptyMessage();
-		}
+            // Initialize services
+            _productService = new ProductService();
+            _transactionService = new TransactionService();
 
-		private void Decrease_Click(object sender, RoutedEventArgs e)
-		{
-			if ((sender as Button)?.DataContext is CartItem item)
-			{
-				int amount = pendingQuantity; //use qty input to decrease certain amount of items
+            // Create initial transaction
+            _currentTransaction = _transactionService.CreateTransaction();
+            Cart = _currentTransaction.Cart;
 
-				if (item.Quantity > amount)
-				{
-					item.Quantity -= amount;
-				}
-				else
-				{
-					Cart.Remove(item); //remove if qty = 1
-				}
+            DataContext = this;
 
-				pendingQuantity = 1;
-				UpdateTotal();
-				UpdateEmptyMessage();
-				ResetInput();
-			}
-		}
+            LoadProductButtons();
+            UpdateTotal();
+            UpdateEmptyMessage();
+            UpdateHeldTransactionCount();
 
-		private void Increase_Click(object sender, RoutedEventArgs e)
-		{
-			if ((sender as Button)?.DataContext is CartItem item)
-			{
-				int amount = pendingQuantity;
+            // Start timer for date/time display
+            var timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            timer.Tick += (s, e) => DateTimeTextBlock.Text = DateTime.Now.ToString(timeFormat);
+            timer.Start();
+            DateTimeTextBlock.Text = DateTime.Now.ToString(timeFormat);
+        }
 
-				item.Quantity += amount;
+        // Load product buttons based on category filter
+        private void LoadProductButtons(string category = "")
+        {
+            ProductsPanel.Children.Clear();
 
-				pendingQuantity = 1;
-				UpdateTotal();
-				UpdateTotal();
-			}
-		}
+            var products = string.IsNullOrEmpty(category)
+                ? _productService.GetAllProducts()
+                : _productService.GetProductsByCategory(category);
 
-		private void Number_Click(object sender, RoutedEventArgs e)
-		{
-			string value = (sender as Button).Content.ToString();
+            foreach (var product in products)
+            {
+                var button = new Button
+                {
+                    Content = $"{product.Name}\n${product.Price:F2}",
+                    Width = 120,
+                    Height = 80,
+                    Margin = new Thickness(5),
+                    Tag = product,
+                    Background = product.RequiresAgeVerification 
+                        ? new SolidColorBrush(Color.FromRgb(255, 152, 0)) // Orange for 18+
+                        : new SolidColorBrush(Color.FromRgb(33, 150, 243)), // Blue for regular
+                    Foreground = Brushes.White,
+                    FontWeight = FontWeights.Bold
+                };
 
-			if (value == "." && currentInput.Contains("."))
-				return; // prevent multiple decimals
+                button.Click += Product_Click;
+                ProductsPanel.Children.Add(button);
+            }
+        }
 
-			if (value == "." && string.IsNullOrEmpty(currentInput))
-			{
-				currentInput = "0.";
-			}
+        // Decrease quantity of cart item or remove if quantity goes to zero
+        private void Decrease_Click(object sender, RoutedEventArgs e)
+        {
+            if ((sender as Button)?.DataContext is CartItem item)
+            {
+                int amount = pendingQuantity;
 
-			if (string.IsNullOrEmpty(currentInput))
-				currentInput = value;
-			else
-				currentInput += value;
+                if (item.Quantity > amount)
+                {
+                    item.Quantity -= amount;
+                }
+                else
+                {
+                    _currentTransaction.Cart.Remove(item);
+                }
 
-			QuantityDisplay.Text = currentInput;
-		}
+                pendingQuantity = 1;
+                UpdateTotal();
+                UpdateEmptyMessage();
+                ResetInput();
+            }
+        }
 
-		private void Clear_Click(object sender, RoutedEventArgs e)
-		{
-			currentInput = "";
-			QuantityDisplay.Text = "";
-		}
+        // Increase quantity of cart item
+        private void Increase_Click(object sender, RoutedEventArgs e)
+        {
+            if ((sender as Button)?.DataContext is CartItem item)
+            {
+                int amount = pendingQuantity;
+                item.Quantity += amount;
 
-		private void Back_Click(object sender, RoutedEventArgs e)
-		{
-			if (!string.IsNullOrEmpty(currentInput))
-			{
-				currentInput = currentInput.Substring(0, currentInput.Length - 1);
-			}
+                pendingQuantity = 1;
+                UpdateTotal();
+                ResetInput();
+            }
+        }
 
-			QuantityDisplay.Text = currentInput;
-		}
+        // Handle number and decimal point button clicks for quantity input
+        private void Number_Click(object sender, RoutedEventArgs e)
+        {
+            string value = (sender as Button).Content.ToString();
 
-		private void Quantity_Click(object sender, RoutedEventArgs e)
-		{
-			pendingQuantity = int.TryParse(currentInput, out int result) ? result : 1;
+            if (value == "." && currentInput.Contains("."))
+                return;
 
-			ResetInput(); // clears screen after pressing Qty
-			QuantityDisplay.Text = $"⚠ Adjusting by:{pendingQuantity}";
-		}
+            if (value == "." && string.IsNullOrEmpty(currentInput))
+            {
+                currentInput = "0.";
+            }
 
-		private void Product_Click(object sender, RoutedEventArgs e)
-		{
-			Button btn = sender as Button;
+            if (string.IsNullOrEmpty(currentInput))
+                currentInput = value;
+            else
+                currentInput += value;
 
-			string name = btn.Content.ToString();
-			double price = double.Parse(btn.Tag.ToString());
+            QuantityDisplay.Text = currentInput;
+        }
 
-			int id = name.ToLower().GetHashCode();
+        // Clear entire input
+        private void Clear_Click(object sender, RoutedEventArgs e)
+        {
+            currentInput = "";
+            QuantityDisplay.Text = "";
+        }
 
-			int qty = pendingQuantity;
+        // Remove last character from input
+        private void Back_Click(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(currentInput))
+            {
+                currentInput = currentInput.Substring(0, currentInput.Length - 1);
+            }
 
-			var existingItem = Cart.FirstOrDefault(x => x.Id == id);
+            QuantityDisplay.Text = currentInput;
+        }
 
-			if (existingItem != null)
-			{
-				existingItem.Quantity += qty;
-			}
-			else
-			{
-				Cart.Add(new CartItem
-				{
-					Id = id,
-					Name = name,
-					Price = price,
-					Quantity = qty
-				});
-			}
+        // Set pending quantity for next add/increase/decrease action
+        private void Quantity_Click(object sender, RoutedEventArgs e)
+        {
+            pendingQuantity = int.TryParse(currentInput, out int result) ? result : 1;
+            ResetInput();
+            QuantityDisplay.Text = $"⚠ Adjusting by: {pendingQuantity}";
+        }
 
-			pendingQuantity = 1; // reset pending quantity after adding to cart
+        // Handle product button click to add item to cart
+        private void Product_Click(object sender, RoutedEventArgs e)
+        {
+            Button btn = sender as Button;
+            Product product = btn.Tag as Product;
 
-			UpdateTotal();
-			UpdateEmptyMessage();
-			ResetInput();
-		}
+            if (product == null) return;
 
-		private void ResetInput()
-		{
-			currentInput = "";
-			QuantityDisplay.Text = "";
-		}
+            // Check stock availability
+            int qty = pendingQuantity;
+            if (!_productService.IsProductInStock(product.Id, qty))
+            {
+                MessageBox.Show($"Insufficient stock for {product.Name}. Only {product.Stock} available.",
+                    "Stock Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
-		private void UpdateTotal()
-		{
-			double total = Cart.Sum(item => item.Subtotal);
-			TotalText.Text = $"Total: {total:C}";
-		}
+            // Age verification check - ONCE PER TRANSACTION
+            if (product.RequiresAgeVerification && !_currentTransaction.AgeVerified)
+            {
+                var ageDialog = new AgeVerificationDialog();
+                if (ageDialog.ShowDialog() == true)
+                {
+                    // Mark transaction as age-verified (applies to all future age-restricted items)
+                    _currentTransaction.AgeVerified = true;
+                }
+                else
+                {
+                    MessageBox.Show("Age verification failed. Cannot add age-restricted items to this transaction.",
+                        "Age Verification", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+            }
 
-		private void UpdateEmptyMessage()
-		{
-			if (Cart.Count == 0)
-				EmptyMessage.Visibility = Visibility.Visible;
-			else
-				EmptyMessage.Visibility = Visibility.Collapsed;
-		}
+            // Add to cart
+            var existingItem = _currentTransaction.Cart.FirstOrDefault(x => x.Product.Id == product.Id);
 
-		private void Abort_Click(object sender, RoutedEventArgs e)
-		{
-			if (MessageBox.Show("Cancel Transaction?", "Confirm", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-			{
-				Cart.Clear();
-				UpdateTotal();
-				UpdateEmptyMessage();
-			}
-		}
+            if (existingItem != null)
+            {
+                existingItem.Quantity += qty;
+            }
+            else
+            {
+                _currentTransaction.Cart.Add(new CartItem(product, qty));
+            }
 
-		private void Hold_Click(object sender, RoutedEventArgs e)
-		{
-			MessageBox.Show("Transaction Held");
-		}
+            pendingQuantity = 1;
+            UpdateTotal();
+            UpdateEmptyMessage();
+            ResetInput();
+        }
 
-		private void Convert_Click(object sender, RoutedEventArgs e)
-		{
-			double total = Cart.Sum(x => x.Subtotal);
-			double cad = total * 1.38; // Example conversion rate
+        // Reset quantity input
+        private void ResetInput()
+        {
+            currentInput = "";
+            QuantityDisplay.Text = "";
+        }
 
-			MessageBox.Show($"USD: ${total:F2}\nCAD: ${cad:F2}");
-		}
+        // Recalculate totals and update display
+        private void UpdateTotal()
+        {
+            _currentTransaction.CalculateTotals();
+            TotalText.Text = $"Total: {_currentTransaction.Total:C}";
+        }
 
-		private void Payment_Click(object sender, RoutedEventArgs e)
-		{
-			if (Cart.Count == 0)
-			{
-				MessageBox.Show("Cart is empty. Please add items before proceeding to payment.");
-				return;
-			}
+        // Show or hide empty cart message
+        private void UpdateEmptyMessage()
+        {
+            if (_currentTransaction.Cart.Count == 0)
+                EmptyMessage.Visibility = Visibility.Visible;
+            else
+                EmptyMessage.Visibility = Visibility.Collapsed;
+        }
 
-			MessageBox.Show("Payment (Card/Other) ");
-		}
+        // Update held transaction count display
+        private void UpdateHeldTransactionCount()
+        {
+            int count = _transactionService.GetHeldTransactionCount();
 
-		private void Cash_Click(object sender, RoutedEventArgs e)
-		{
-			if (Cart.Count == 0)
-			{
-				MessageBox.Show("Cart is empty. Please add items before proceeding to payment.");
-				return;
-			}
+            HeldCountTextBlock.Text = count.ToString();
+        }
 
-			double total = Cart.Sum(x => x.Subtotal);
+        // Abort current transaction and clear cart
+        private void Abort_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentTransaction.Cart.Count == 0)
+            {
+                MessageBox.Show("Transaction is already empty.", "Nothing to Abort",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
 
-			var payment = new PaymentWindow(total, () =>
-			{
-				Cart.Clear();
-				UpdateTotal();
-				UpdateEmptyMessage();
-			});
+            var result = MessageBox.Show(
+                "Are you sure you want to abort this transaction?\n\nAll items will be removed and the transaction will be discarded.",
+                "Confirm Abort Transaction",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
 
-			payment.ShowDialog();
-		}
+            if (result == MessageBoxResult.Yes)
+            {
+                _transactionService.AbortTransaction(_currentTransaction);
+                
+                // Create new transaction
+                _currentTransaction = _transactionService.CreateTransaction();
+                CartGrid.ItemsSource = _currentTransaction.Cart;
+                
+                UpdateTotal();
+                UpdateEmptyMessage();
+                
+                MessageBox.Show("Transaction aborted successfully.", "Transaction Aborted",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
 
-		private void Receipt_Click(object sender, RoutedEventArgs e)
-		{
-			var receipt = new ReceiptWindow(Cart);
-			receipt.ShowDialog();
-		}
+        // Hold current transaction and start a new one
+        private void Hold_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentTransaction.Cart.Count == 0)
+            {
+                MessageBox.Show("Cannot hold an empty transaction.", "Empty Cart",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
 
-		private void Category_Click(object sender, RoutedEventArgs e)
-		{
-			Button btn = sender as Button;
-			MessageBox.Show($"Selected: {btn.Content}");
-		}
+            try
+            {
+                _transactionService.HoldTransaction(_currentTransaction);
+                
+                MessageBox.Show(
+                    $"Transaction held successfully!\n\n" +
+                    $"Transaction ID: {_currentTransaction.Id.Substring(0, 8)}...\n" +
+                    $"Items: {_currentTransaction.Cart.Count}\n" +
+                    $"Total: {_currentTransaction.Total:C}\n\n" +
+                    $"You can resume this transaction later.",
+                    "Transaction Held",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
 
-		public class CartItem : INotifyPropertyChanged
-		{
-			public int Id { get; set; }
-			public string Name { get; set; }
-			public double Price { get; set; }
+                // Create new transaction
+                _currentTransaction = _transactionService.CreateTransaction();
+                CartGrid.ItemsSource = _currentTransaction.Cart;
+                
+                UpdateTotal();
+                UpdateEmptyMessage();
+                UpdateHeldTransactionCount();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error holding transaction: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
 
-			private int quantity;
-			public int Quantity
-			{
-				get => quantity;
-				set
-				{
-					quantity = value;
-					OnPropertyChanged(nameof(Quantity));
-					OnPropertyChanged(nameof(Subtotal));
-				}
-			}
+        private void Resume_Click(object sender, RoutedEventArgs e)
+        {
+            var heldTransactions = _transactionService.GetHeldTransactions();
+            
+            if (heldTransactions.Count == 0)
+            {
+                MessageBox.Show("No held transactions available.", "No Held Transactions",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
 
-			public double Subtotal => Quantity * Price;
+            // Check if current transaction has items
+            if (_currentTransaction.Cart.Count > 0)
+            {
+                var result = MessageBox.Show(
+                    "Current transaction has items. Do you want to hold it before resuming another?\n\n" +
+                    "Yes - Hold current and resume selected\n" +
+                    "No - Discard current and resume selected\n" +
+                    "Cancel - Keep working on current",
+                    "Current Transaction",
+                    MessageBoxButton.YesNoCancel,
+                    MessageBoxImage.Question);
 
-			public event PropertyChangedEventHandler PropertyChanged;
+                if (result == MessageBoxResult.Cancel)
+                    return;
 
-			protected void OnPropertyChanged(string name)
-			{
-				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-			}
-		}
-	}
+                if (result == MessageBoxResult.Yes)
+                {
+                    _transactionService.HoldTransaction(_currentTransaction);
+                }
+                else
+                {
+                    _transactionService.AbortTransaction(_currentTransaction);
+                }
+            }
+
+            // Show held transactions dialog
+            var dialog = new HeldTransactionsDialog(_transactionService, UpdateHeldTransactionCount);
+            if (dialog.ShowDialog() == true && dialog.SelectedTransaction != null)
+            {
+                try
+                {
+                    // Resume the selected transaction
+                    _currentTransaction = _transactionService.ResumeTransaction(dialog.SelectedTransaction.Id);
+                    CartGrid.ItemsSource = _currentTransaction.Cart;
+                    
+                    UpdateTotal();
+                    UpdateEmptyMessage();
+                    UpdateHeldTransactionCount();
+
+                    MessageBox.Show(
+                        $"Transaction resumed!\n\n" +
+                        $"Items: {_currentTransaction.Cart.Count}\n" +
+                        $"Total: {_currentTransaction.Total:C}\n" +
+                        $"Age Verified: {(_currentTransaction.AgeVerified ? "Yes" : "No")}",
+                        "Transaction Resumed",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error resuming transaction: {ex.Message}", "Error",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        // Simple currency conversion feature (CAD to USD)
+        private void Convert_Click(object sender, RoutedEventArgs e)
+        {
+            double total = _currentTransaction.Total;
+            double usd = total / exchangeRate; // CAD to USD conversion
+
+            MessageBox.Show(
+                $"CURRENCY CONVERSION\n\n" +
+                $"CAD: ${total:F2}\n" +
+                $"USD: ${usd:F2}\n\n" +
+                $"Exchange Rate: 1 USD = {exchangeRate} CAD",
+                "USD ↔ CAD Conversion",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+
+        // Placeholder for payment processing (card/mobile)
+        private void Payment_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentTransaction.Cart.Count == 0)
+            {
+                MessageBox.Show("Cart is empty. Please add items before proceeding to payment.",
+                    "Empty Cart", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            MessageBox.Show(
+                "Card/Other Payment\n\n" +
+                "This feature allows payment via:\n" +
+                "• Credit Card\n" +
+                "• Debit Card\n" +
+                "• Mobile Payment\n\n" +
+                "(Feature to be added during maintenance)",
+                "Payment Options",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+
+        // Placeholder for cash payment processing
+        private void Cash_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentTransaction.Cart.Count == 0)
+            {
+                MessageBox.Show("Cart is empty. Please add items before proceeding to payment.",
+                    "Empty Cart", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var payment = new PaymentWindow(_currentTransaction.Total, null);
+                payment.ShowDialog();
+
+                //After window closes, use its data
+                double change = payment.ChangeAmount;
+			    _currentTransaction.Change = change;
+			    _currentTransaction.PaymentMethod = "Cash";
+
+			// Update product stock after successful payment
+			foreach (var item in _currentTransaction.Cart)
+                {
+                    item.Product.UpdateStock(-item.Quantity);
+                }
+
+                // Complete the transaction
+                _transactionService.CompleteTransaction(_currentTransaction);
+                TransactionHistory.Add(_currentTransaction);
+
+                // ask user for receipt
+                var result = MessageBox.Show("Print receipt?", "Receipt",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    var receipt = new ReceiptWindow(_currentTransaction.Cart, _currentTransaction.PaymentMethod, _currentTransaction.Change);
+                    receipt.ShowDialog();
+                }
+
+                // Create new transaction
+                _currentTransaction = _transactionService.CreateTransaction();
+                CartGrid.ItemsSource = _currentTransaction.Cart;
+                UpdateTotal();
+                UpdateEmptyMessage();
+            }
+
+        // View transaction history
+        private void Receipt_Click(object sender, RoutedEventArgs e)
+        {
+            var historyWindow = new TransactionHistoryWindow(_transactionService);
+            historyWindow.ShowDialog();
+        }
+
+        private void Category_Click(object sender, RoutedEventArgs e)
+        {
+            Button btn = sender as Button;
+            string? category = btn.Tag?.ToString();
+
+            if (!string.IsNullOrEmpty(category))
+            {
+                currentCategory = category;
+            }
+            LoadProductButtons(category);
+        }
+
+        // Open product management window
+        private void ProductManagement_Click(object sender, RoutedEventArgs e)
+        {
+            var productMgmtWindow = new ProductManagementWindow(_productService);
+            productMgmtWindow.ShowDialog();
+
+            // Refresh products after management window closes
+            LoadProductButtons(currentCategory);
+        }
+    }
 }

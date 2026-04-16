@@ -1,40 +1,61 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using POSSystem.Models;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace POSSystem
 {
-	/// <summary>
-	/// Interaction logic for ReceiptWindow.xaml
-	/// </summary>
-	public partial class ReceiptWindow : Window
-	{
-		public ReceiptWindow(ObservableCollection<MainWindow.CartItem> cart)
-		{
-			InitializeComponent();
+    public partial class ReceiptWindow : Window
+    {
+        private string paymentMethod;
+        public ReceiptWindow(ObservableCollection<CartItem> cart, string method, double change)
+        {
+            InitializeComponent();
 
+            paymentMethod = method;
+
+            //Receipt Header Info
+            ReceiptInfoText.Text = $"Receipt No: {Guid.NewGuid().ToString().Substring(0, 8)}\n" + $"{DateTime.Now:MM/dd/yyyy HH:mm:ss}";
+
+            //Items List
 			foreach (var item in cart)
-			{
-				ReceiptList.Items.Add($"{item.Name} x{item.Quantity} - {item.Subtotal:C}");
+            {
+				string name = item.Product.Name;
+				string qtyLine = $"{item.Quantity} x {item.Product.Price:C}";
+				string totalLine = item.Subtotal.ToString("C");
+
+				ReceiptList.Items.Add(name);
+				ReceiptList.Items.Add($"{qtyLine.PadRight(20)}{totalLine}");
 			}
 
-			double total = cart.Sum(x => x.Subtotal);
-			TotalText.Text = $"Total: {total:C}";
+			//Calculations
+            int itemCount = cart.Sum(x => x.Quantity);
+			double subtotal = cart.Sum(x => x.Subtotal);
+            double tax = subtotal * 0.13;
+            double total = subtotal + tax;
+
+            //Summary
+            ItemsCountText.Text = $"Items: {itemCount}";
+            SubtotalText.Text = $"Subtotal: {subtotal:C}";
+            TaxText.Text = $"Tax (13%): {tax:c}";
+            TotalText.Text = $"Total: {total:C}";
+
+			//Payment section
+			PaymentText.Text = $"Payment: {paymentMethod}";
+			CashText.Text = $"Cash: {total:C}";
+			ChangeText.Text = $"Change: {change:C}";
 		}
 
-		private void Print_Click(object sender, RoutedEventArgs e)
-		{
-			MessageBox.Show("Printing receipt...");
-		}
-	}
+        private void Print_Click(object sender, RoutedEventArgs e)
+        {
+            // Create a PrintDialog
+            PrintDialog printDialog = new();
+
+            if (printDialog.ShowDialog() == true)
+            {
+                // Only prints receipt content
+                printDialog.PrintVisual(ReceiptPanel, "Receipt");
+            }
+        }
+    }
 }
