@@ -7,18 +7,44 @@ namespace POSSystem
 {
     public partial class ReceiptWindow : Window
     {
-        public ReceiptWindow(ObservableCollection<CartItem> cart)
+        private string paymentMethod;
+        public ReceiptWindow(ObservableCollection<CartItem> cart, string method, double change)
         {
             InitializeComponent();
 
-            foreach (var item in cart)
-            {
-                ReceiptList.Items.Add($"{item.Product.Name} x{item.Quantity} - {item.Subtotal:C}");
-            }
+            paymentMethod = method;
 
-            double total = cart.Sum(x => x.Subtotal);
+            //Receipt Header Info
+            ReceiptInfoText.Text = $"Receipt No: {Guid.NewGuid().ToString().Substring(0, 8)}\n" + $"{DateTime.Now:MM/dd/yyyy HH:mm:ss}";
+
+            //Items List
+			foreach (var item in cart)
+            {
+				string name = item.Product.Name;
+				string qtyLine = $"{item.Quantity} x {item.Product.Price:C}";
+				string totalLine = item.Subtotal.ToString("C");
+
+				ReceiptList.Items.Add(name);
+				ReceiptList.Items.Add($"{qtyLine.PadRight(20)}{totalLine}");
+			}
+
+			//Calculations
+            int itemCount = cart.Sum(x => x.Quantity);
+			double subtotal = cart.Sum(x => x.Subtotal);
+            double tax = subtotal * 0.13;
+            double total = subtotal + tax;
+
+            //Summary
+            ItemsCountText.Text = $"Items: {itemCount}";
+            SubtotalText.Text = $"Subtotal: {subtotal:C}";
+            TaxText.Text = $"Tax (13%): {tax:c}";
             TotalText.Text = $"Total: {total:C}";
-        }
+
+			//Payment section
+			PaymentText.Text = $"Payment: {paymentMethod}";
+			CashText.Text = $"Cash: {total:C}";
+			ChangeText.Text = $"Change: {change:C}";
+		}
 
         private void Print_Click(object sender, RoutedEventArgs e)
         {
@@ -27,8 +53,8 @@ namespace POSSystem
 
             if (printDialog.ShowDialog() == true)
             {
-                // Print the entire window or a specific element
-                printDialog.PrintVisual(this, "Receipt");
+                // Only prints receipt content
+                printDialog.PrintVisual(ReceiptPanel, "Receipt");
             }
         }
     }

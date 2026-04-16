@@ -437,10 +437,16 @@ namespace POSSystem
                 return;
             }
 
-            var payment = new PaymentWindow(_currentTransaction.Total, () =>
-            {
-                // Update product stock after successful payment
-                foreach (var item in _currentTransaction.Cart)
+            var payment = new PaymentWindow(_currentTransaction.Total, null);
+                payment.ShowDialog();
+
+                //After window closes, use its data
+                double change = payment.ChangeAmount;
+			    _currentTransaction.Change = change;
+			    _currentTransaction.PaymentMethod = "Cash";
+
+			// Update product stock after successful payment
+			foreach (var item in _currentTransaction.Cart)
                 {
                     item.Product.UpdateStock(-item.Quantity);
                 }
@@ -455,7 +461,7 @@ namespace POSSystem
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    var receipt = new ReceiptWindow(_currentTransaction.Cart);
+                    var receipt = new ReceiptWindow(_currentTransaction.Cart, _currentTransaction.PaymentMethod, _currentTransaction.Change);
                     receipt.ShowDialog();
                 }
 
@@ -464,10 +470,7 @@ namespace POSSystem
                 CartGrid.ItemsSource = _currentTransaction.Cart;
                 UpdateTotal();
                 UpdateEmptyMessage();
-            });
-
-            payment.ShowDialog();
-        }
+            }
 
         // View transaction history
         private void Receipt_Click(object sender, RoutedEventArgs e)

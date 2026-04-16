@@ -11,7 +11,7 @@ namespace POSSystem
     {
         private readonly ITransactionService _transactionService;
 
-        public TransactionHistoryWindow(ITransactionService transactionService)
+		public TransactionHistoryWindow(ITransactionService transactionService)
         {
             InitializeComponent();
             _transactionService = transactionService;
@@ -42,7 +42,7 @@ namespace POSSystem
 		{
             if (TransactionsDataGrid.SelectedItem is Transaction selected)
             {
-                var receipt = new ReceiptWindow(selected.Cart);
+                var receipt = new ReceiptWindow(selected.Cart, selected.PaymentMethod, selected.Change);
 
                 receipt.ShowDialog();
             }

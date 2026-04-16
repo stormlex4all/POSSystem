@@ -310,8 +310,10 @@ namespace POSSystem.Models
         public double Total { get; set; }
         public string Status { get; set; } // "Active", "Held", "Completed", "Aborted"
         public bool AgeVerified { get; set; }
+        public double Change { get; set; } // For completed transactions
+        public string PaymentMethod { get; set; } = "";
 
-        public Transaction()
+		public Transaction()
         {
             Id = Guid.NewGuid().ToString();
             CreatedDate = DateTime.Now;
