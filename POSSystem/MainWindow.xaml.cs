@@ -1,26 +1,31 @@
+using POSSystem.Data;
 using POSSystem.Models;
 using POSSystem.Services;
+
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
+
 using Transaction = POSSystem.Models.Transaction;
 
 namespace POSSystem
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, IDisposable
     {
         private readonly IProductService _productService;
         private readonly ITransactionService _transactionService;
-        
+        private bool _disposed;
+        private readonly POSDbContext _dbContext;
+
         private Transaction _currentTransaction;
         public ObservableCollection<CartItem> Cart { get; set; }
         private string currentInput = "";
         private int pendingQuantity = 1;
         private string currentCategory = "";
         private readonly string timeFormat = "dddd, MMMM dd, yyyy - hh:mm:ss tt";
-        private readonly double exchangeRate = 1.38; // CAD to USD exchange rate (for demonstration)
+        private readonly decimal exchangeRate = 1.38m; // CAD to USD exchange rate (for demonstration)
 
         public static List<Transaction> TransactionHistory = [];
 
@@ -28,10 +33,11 @@ namespace POSSystem
         public MainWindow()
         {
             InitializeComponent();
+            _dbContext = new POSDbContext();
 
             // Initialize services
-            _productService = new ProductService();
-            _transactionService = new TransactionService();
+            _productService = new ProductService(_dbContext);
+            _transactionService = new TransactionService(_dbContext);
 
             // Create initial transaction
             _currentTransaction = _transactionService.CreateTransaction();
@@ -392,8 +398,8 @@ namespace POSSystem
         // Simple currency conversion feature (CAD to USD)
         private void Convert_Click(object sender, RoutedEventArgs e)
         {
-            double total = _currentTransaction.Total;
-            double usd = total / exchangeRate; // CAD to USD conversion
+            decimal total = _currentTransaction.Total;
+            decimal usd = total / exchangeRate; // CAD to USD conversion
 
             MessageBox.Show(
                 $"CURRENCY CONVERSION\n\n" +
@@ -441,7 +447,7 @@ namespace POSSystem
                 payment.ShowDialog();
 
                 //After window closes, use its data
-                double change = payment.ChangeAmount;
+                decimal change = payment.ChangeAmount;
 			    _currentTransaction.Change = change;
 			    _currentTransaction.PaymentMethod = "Cash";
 
@@ -473,7 +479,7 @@ namespace POSSystem
             }
 
         // View transaction history
-        private void Receipt_Click(object sender, RoutedEventArgs e)
+        private void History_Click(object sender, RoutedEventArgs e)
         {
             var historyWindow = new TransactionHistoryWindow(_transactionService);
             historyWindow.ShowDialog();
@@ -499,6 +505,32 @@ namespace POSSystem
 
             // Refresh products after management window closes
             LoadProductButtons(currentCategory);
+        }
+
+        
+        protected override void OnClosed(EventArgs e)
+        {
+            Dispose();
+            base.OnClosed(e);
+        }
+
+        
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                    _dbContext.Dispose();
+
+                _disposed = true;
+            }
+        }
+
+        
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

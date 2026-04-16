@@ -47,21 +47,21 @@ namespace POSSystem.Models
     // Interface for priceable items
     public interface IPriceable
     {
-        double GetPrice();
-        double GetTotalPrice();
+        decimal GetPrice();
+        decimal GetTotalPrice();
     }
 
     // Interface for taxable items
     public interface ITaxable
     {
-        double CalculateTax(double taxRate);
+        decimal CalculateTax(decimal taxRate);
     }
 
     // Product class - inherits from BaseEntity and implements interfaces
     public class Product : BaseEntity, IPriceable
     {
         private string _name;
-        private double _price;
+        private decimal _price;
         private int _stock;
         private string _category;
         private bool _requiresAgeVerification;
@@ -77,7 +77,7 @@ namespace POSSystem.Models
             }
         }
 
-        public double Price
+        public decimal Price
         {
             get => _price;
             set
@@ -138,7 +138,7 @@ namespace POSSystem.Models
             Barcode = string.Empty;
         }
 
-        public Product(string name, double price, int stock, string category = "General", bool requiresAge = false)
+        public Product(string name, decimal price, int stock, string category = "General", bool requiresAge = false)
         {
             Name = name;
             Price = price;
@@ -148,12 +148,12 @@ namespace POSSystem.Models
             Barcode = string.Empty;
         }
 
-        public double GetPrice()
+        public decimal GetPrice()
         {
             return Price;
         }
 
-        public double GetTotalPrice()
+        public decimal GetTotalPrice()
         {
             return Price;
         }
@@ -205,8 +205,8 @@ namespace POSSystem.Models
 
         // Convenience properties for binding
         public string Name => Product?.Name ?? "Unknown";
-        public double Price => Product?.Price ?? 0;
-        public double Subtotal => Quantity * Price;
+        public decimal Price => Product?.Price ?? 0;
+        public decimal Subtotal => Quantity * Price;
 
         public CartItem()
         {
@@ -219,17 +219,17 @@ namespace POSSystem.Models
             Quantity = quantity;
         }
 
-        public double GetPrice()
+        public decimal GetPrice()
         {
             return Price;
         }
 
-        public double GetTotalPrice()
+        public decimal GetTotalPrice()
         {
             return Subtotal;
         }
 
-        public double CalculateTax(double taxRate)
+        public decimal CalculateTax(decimal taxRate)
         {
             return Subtotal * taxRate;
         }
@@ -238,10 +238,10 @@ namespace POSSystem.Models
     // Abstract Payment class - demonstrates polymorphism
     public abstract class Payment
     {
-        public double Amount { get; set; }
+        public decimal Amount { get; set; }
         public DateTime PaymentDate { get; set; }
 
-        protected Payment(double amount)
+        protected Payment(decimal amount)
         {
             Amount = amount;
             PaymentDate = DateTime.Now;
@@ -253,10 +253,10 @@ namespace POSSystem.Models
     // Concrete payment implementations
     public class CashPayment : Payment
     {
-        public double AmountTendered { get; set; }
-        public double Change => AmountTendered - Amount;
+        public decimal AmountTendered { get; set; }
+        public decimal Change => AmountTendered - Amount;
 
-        public CashPayment(double amount, double tendered) : base(amount)
+        public CashPayment(decimal amount, decimal tendered) : base(amount)
         {
             AmountTendered = tendered;
         }
@@ -272,7 +272,7 @@ namespace POSSystem.Models
         public string CardType { get; set; }
         public string Last4Digits { get; set; }
 
-        public CardPayment(double amount, string cardType, string last4) : base(amount)
+        public CardPayment(decimal amount, string cardType, string last4) : base(amount)
         {
             CardType = cardType;
             Last4Digits = last4;
@@ -286,10 +286,10 @@ namespace POSSystem.Models
 
     public class USDPayment : Payment
     {
-        public double ExchangeRate { get; set; }
-        public double USDAmount => Amount / ExchangeRate;
+        public decimal ExchangeRate { get; set; }
+        public decimal USDAmount => Amount / ExchangeRate;
 
-        public USDPayment(double cadAmount, double exchangeRate) : base(cadAmount)
+        public USDPayment(decimal cadAmount, decimal exchangeRate) : base(cadAmount)
         {
             ExchangeRate = exchangeRate;
         }
@@ -299,18 +299,19 @@ namespace POSSystem.Models
             return $"USD payment processed. ${USDAmount:F2} USD = ${Amount:F2} CAD";
         }
     }
+
     // Transaction data model
     public class Transaction
     {
         public string Id { get; set; }
         public DateTime CreatedDate { get; set; }
         public ObservableCollection<CartItem> Cart { get; set; }
-        public double Subtotal { get; set; }
-        public double Tax { get; set; }
-        public double Total { get; set; }
+        public decimal Subtotal { get; set; }
+        public decimal Tax { get; set; }
+        public decimal Total { get; set; }
         public string Status { get; set; } // "Active", "Held", "Completed", "Aborted"
         public bool AgeVerified { get; set; }
-        public double Change { get; set; } // For completed transactions
+        public decimal Change { get; set; } // For completed transactions
         public string PaymentMethod { get; set; } = "";
 
 		public Transaction()
@@ -326,28 +327,30 @@ namespace POSSystem.Models
         public void CalculateTotals()
         {
             Subtotal = Cart.Sum(item => item.Subtotal);
-            Tax = Subtotal * 0.05; // 5% GST
+            Tax = Subtotal * 0.05m; // 5% GST
             Total = Subtotal + Tax;
         }
 
         // Method to create a deep copy of the transaction (used for holding/resuming)
         public Transaction Clone()
         {
-            var clone = new Transaction
-            {
-                Id = this.Id,
-                CreatedDate = this.CreatedDate,
-                Status = this.Status,
-                AgeVerified = this.AgeVerified
-            };
+            //var clone = new Transaction
+            //{
+            //    Id = this.Id,
+            //    CreatedDate = this.CreatedDate,
+            //    Status = this.Status,
+            //    AgeVerified = this.AgeVerified
+            //};
 
-            foreach (var item in Cart)
-            {
-                clone.Cart.Add(new CartItem(item.Product, item.Quantity));
-            }
+            //foreach (var item in Cart)
+            //{
+            //    clone.Cart.Add(new CartItem(item.Product, item.Quantity));
+            //}
 
-            clone.CalculateTotals();
-            return clone;
+            //clone.CalculateTotals();
+            //return clone;
+            this.CalculateTotals();
+            return this;
         }
     }
 }

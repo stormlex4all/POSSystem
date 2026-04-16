@@ -11,7 +11,7 @@ namespace POSSystem
 
         public ProductManagementWindow(IProductService productService)
         {
-            _productService = productService ?? new ProductService();
+            _productService = productService;
             InitializeComponent();
             LoadProducts();
         }

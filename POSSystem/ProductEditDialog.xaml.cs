@@ -63,7 +63,7 @@ namespace POSSystem
                     return;
                 }
 
-                if (!double.TryParse(PriceTextBox.Text, out double price) || price < 0)
+                if (!decimal.TryParse(PriceTextBox.Text, out decimal price) || price < 0)
                 {
                     MessageBox.Show("Please enter a valid price (0 or greater).", "Validation Error",
                         MessageBoxButton.OK, MessageBoxImage.Warning);

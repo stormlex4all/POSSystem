@@ -5,11 +5,11 @@ namespace POSSystem
 {
     public partial class PaymentWindow : Window
     {
-        private double totalAmount = 0;
+        private decimal totalAmount = 0;
         private Action onPaymentComplete;
-        public double ChangeAmount { get; private set; }
+        public decimal ChangeAmount { get; private set; }
 
-		public PaymentWindow(double total, Action onComplete)
+		public PaymentWindow(decimal total, Action onComplete)
         {
             InitializeComponent();
             totalAmount = total;
@@ -19,9 +19,9 @@ namespace POSSystem
 
         private void Calculate_Click(object sender, RoutedEventArgs e)
         {
-            if (double.TryParse(CashInput.Text, out double cash))
+            if (decimal.TryParse(CashInput.Text, out decimal cash))
             {
-                double change = cash - totalAmount;
+                decimal change = cash - totalAmount;
                 ChangeAmount = change;
 
                 if (change < 0)
@@ -41,7 +41,7 @@ namespace POSSystem
 
         private void Confirm_Click(object sender, RoutedEventArgs e)
         {
-            if (!double.TryParse(CashInput.Text, out double cash))
+            if (!decimal.TryParse(CashInput.Text, out decimal cash))
             {
                 MessageBox.Show("Please enter a valid amount.", "Invalid Input",
                     MessageBoxButton.OK, MessageBoxImage.Warning);

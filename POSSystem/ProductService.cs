@@ -1,4 +1,9 @@
 using System.Collections.ObjectModel;
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+
+using POSSystem.Data;
 using POSSystem.Models;
 
 namespace POSSystem.Services
@@ -14,45 +19,21 @@ namespace POSSystem.Services
         ObservableCollection<Product> SearchProducts(string searchTerm);
         ObservableCollection<Product> GetProductsByCategory(string category);
         bool IsProductInStock(string productId, int requestedQuantity);
+        void SaveChanges();
     }
 
     // Product service implementation
     public class ProductService : IProductService
     {
-        private ObservableCollection<Product> _products;
+        private readonly LocalView<Product> _products;
+        private readonly POSDbContext _dbContext;
 
-        public ProductService()
+
+        public ProductService(POSDbContext context)
         {
-            _products = new ObservableCollection<Product>();
-            InitializeSampleProducts();
-        }
-
-        private void InitializeSampleProducts()
-        {
-            // Food items
-            _products.Add(new Product("Sandwich", 5.99, 20, "Food", false));
-            _products.Add(new Product("Hot Dog", 3.49, 25, "Food", false));
-            _products.Add(new Product("Pizza Slice", 4.99, 15, "Food", false));
-
-            // Beverages
-            _products.Add(new Product("Coke", 1.99, 50, "Beverages", false));
-            _products.Add(new Product("Pepsi", 1.99, 50, "Beverages", false));
-            _products.Add(new Product("Water", 1.49, 100, "Beverages", false));
-            _products.Add(new Product("Energy Drink", 3.99, 30, "Beverages", false));
-
-            // Snacks
-            _products.Add(new Product("Chips", 2.49, 40, "Snacks", false));
-            _products.Add(new Product("Chocolate", 1.99, 60, "Snacks", false));
-            _products.Add(new Product("Candy Bar", 1.49, 75, "Snacks", false));
-            _products.Add(new Product("Gum", 1.99, 50, "Snacks", false));
-
-            // Age-restricted items
-            _products.Add(new Product("Cigarettes", 15.99, 20, "18+", true) { Barcode = "123456789" });
-            _products.Add(new Product("Tobacco", 12.99, 15, "18+", true) { Barcode = "987654321" });
-
-            // Miscellaneous
-            _products.Add(new Product("Magazine", 4.99, 30, "Misc", false));
-            _products.Add(new Product("Batteries", 6.99, 25, "Misc", false));
+            _dbContext = context;
+            _dbContext.Products.Load();
+            _products = _dbContext.Products.Local;
         }
 
         public void AddProduct(Product product)
@@ -67,6 +48,7 @@ namespace POSSystem.Services
                 throw new ArgumentException("Price cannot be negative");
 
             _products.Add(product);
+            _dbContext.SaveChanges();
         }
 
         public void UpdateProduct(Product product)
@@ -84,6 +66,7 @@ namespace POSSystem.Services
             existing.Category = product.Category;
             existing.RequiresAgeVerification = product.RequiresAgeVerification;
             existing.Barcode = product.Barcode;
+            _dbContext.SaveChanges();
         }
 
         public void DeleteProduct(string productId)
@@ -93,6 +76,7 @@ namespace POSSystem.Services
             {
                 _products.Remove(product);
             }
+            _dbContext.SaveChanges();
         }
 
         public Product GetProductById(string productId)
@@ -102,13 +86,13 @@ namespace POSSystem.Services
 
         public ObservableCollection<Product> GetAllProducts()
         {
-            return _products;
+            return _products.ToObservableCollection();
         }
 
         public ObservableCollection<Product> SearchProducts(string searchTerm)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
-                return _products;
+                return _products.ToObservableCollection();
 
             var filtered = _products.Where(p =>
                 p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
@@ -122,7 +106,7 @@ namespace POSSystem.Services
         public ObservableCollection<Product> GetProductsByCategory(string category)
         {
             if (string.IsNullOrWhiteSpace(category))
-                return _products;
+                return _products.ToObservableCollection();
 
             var filtered = _products.Where(p =>
                 p.Category.Equals(category, StringComparison.OrdinalIgnoreCase)
@@ -136,5 +120,7 @@ namespace POSSystem.Services
             var product = GetProductById(productId);
             return product != null && product.Stock >= requestedQuantity;
         }
+
+        public void SaveChanges() => _dbContext.SaveChanges();
     }
 }
