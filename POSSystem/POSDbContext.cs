@@ -24,7 +24,7 @@ namespace POSSystem.Data
         public static void Initialize()
         {
             using var context = new POSDbContext();
-            context.Database.EnsureCreated();
+            context.Database.Migrate();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
